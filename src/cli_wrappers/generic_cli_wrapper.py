@@ -3,7 +3,6 @@
 import logging
 import subprocess
 import typing as t
-from sys import platform
 
 
 # The global logger used in this module
@@ -146,4 +145,3 @@ class GenericCliWrapper():
             )
 
         return decoded_output
-
