@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-
 import subprocess
 import typing as t
 import pytest
-
 
 from src.cli_wrappers.generic_cli_wrapper import (
     CliCommandFailed,
