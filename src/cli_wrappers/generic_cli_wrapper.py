@@ -38,49 +38,49 @@ class GenericCliWrapper():
     Indicates whether a shell is required for executing the CLI binary.
     """
 
+    _CWD: t.ClassVar[str] = t.cast(str,None)
+
+    """
+    Current Directory for running CLI Binary
+    """
+
     @classmethod
-    def get_version(cls) -> str:
+    def get_version(self) -> str:
         """
         Retrieves the version of the CLI binary installed.
-
         :return: The version of the CLI binary (may be a multi-line
                  string depending on the CLI behavior)
         :rtype: str
-
         :raises CliCommandFailed: If the CLI returned an error code
         """
 
         # Run the CLI with the correct version option
-        return cls._run_cli(
-            [cls._VERSION_ARGUMENT],
+        return self._run_cli(
+            [self._VERSION_ARGUMENT],
             log_output=False,  # The caller will log the version, if required
         ).strip()
 
 
     @classmethod
     def _run_cli(
-        cls,
+        self,
         args: t.List[str],
         log_output: bool = True,
     ) -> str:
         """
         Runs the CLI with the given arguments.
-
         :param args: The list of arguments for the CLI (not including
                      the name of the CLI binary itself)
         :type args: List[str]
-
         :param log_output: Indicates whether to log the output or not
         :type log_output: bool
-
         :return: The output produced by the CLI binary
         :rtype: str
-
         :raises CliCommandFailed: If the CLI returned an error code
         """
 
         # Log the command to be executed
-        if cls._CLI_BINARY is None :
+        if self._CLI_BINARY is None :
             _logger.error(
                 "_CLI_BINARY is not set"
             )
@@ -88,12 +88,12 @@ class GenericCliWrapper():
                 "_CLI_BINARY is not set"
             )
 
-        cli_command = [cls._CLI_BINARY] + args
+        cli_command = [self._CLI_BINARY] + args
         cli_command_str = " ".join(cli_command)
 
         _logger.info(
             "Executing {} CLI: {}".format(
-                cls._CLI_BINARY,
+                self._CLI_BINARY,
                 cli_command_str,
             ),
         )
@@ -103,7 +103,8 @@ class GenericCliWrapper():
             cli_command,
             stdout=subprocess.PIPE,     # Capture the output
             stderr=subprocess.STDOUT,   # Redirect stderr to stdout
-            shell=cls._SHELL_REQUIRED,  # Some CLIs (gcloud) require a shell
+            shell=self._SHELL_REQUIRED,  # Some CLIs require a shell
+            cwd=self._CWD
         )
 
         # Check, if the CLI failed
@@ -113,7 +114,7 @@ class GenericCliWrapper():
             # The CLI failed, log the output, just in case
             _logger.error(
                 "Unable to execute {} CLI ({}), error={}\n{}".format(
-                    cls._CLI_BINARY,
+                    self._CLI_BINARY,
                     cli_command_str,
                     result.returncode,
                     decoded_output,
@@ -121,7 +122,7 @@ class GenericCliWrapper():
             )
             raise CliCommandFailed(
                 "Unable to execute {} CLI, error={}".format(
-                    cls._CLI_BINARY,
+                    self._CLI_BINARY,
                     result.returncode,
                 ),
             )
@@ -131,7 +132,7 @@ class GenericCliWrapper():
         if log_output:
             _logger.info(
                 "{} CLI ({}) executed successfully:\n{}".format(
-                    cls._CLI_BINARY,
+                    self._CLI_BINARY,
                     cli_command_str,
                     decoded_output,
                 ),
@@ -139,7 +140,7 @@ class GenericCliWrapper():
         else:
             _logger.info(
                 "{} CLI ({}) executed successfully".format(
-                    cls._CLI_BINARY,
+                    self._CLI_BINARY,
                     cli_command_str,
                 ),
             )
